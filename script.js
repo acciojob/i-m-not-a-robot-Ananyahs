@@ -1,116 +1,117 @@
-//your JS code here. If required.
-//your JS code here. If required.
-// Array of image URLs
-const imageUrls = [
-  'image1.jpg',
-  'image2.jpg',
-  'image3.jpg',
-  'image4.jpg',
-  'image5.jpg',
-];
+ 
 
-// Get random index for repeating image
-const repeatedImageIndex = Math.floor(Math.random() * imageUrls.length);
 
-// Get random index for verify image
-const verifyImageIndex = Math.floor(Math.random() * imageUrls.length);
+const images = Array.from(document.querySelectorAll("img"));
+// const resetButton = document.getElementById("reset");
+// const verifyButton = document.getElementById("verify");
+const messagePara = document.getElementById("para");
+const heading = document.getElementById("h");
 
-// Generate an array of image indexes
-const imageIndexes = Array.from({ length: imageUrls.length }, (_, i) => i);
 
-// Shuffle the image indexes
-const shuffledIndexes = shuffle(imageIndexes);
 
-// Create the image elements
-const imagesContainer = document.getElementById('images-container');
-shuffledIndexes.forEach((index, i) => {
-  const imageUrl = imageUrls[i === repeatedImageIndex ? repeatedImageIndex : index];
-  const img = document.createElement('img');
-  img.src = imageUrl;
-  img.className = `img${i + 1}`;
-  img.addEventListener('click', handleImageClick);
-  imagesContainer.appendChild(img);
+
+// Get a reference to the images container
+const imagesContainer = document.querySelector(".images");
+
+// Create a new image element and set its attributes
+const newImage = document.createElement("img");
+newImage.classList.add("tile", "img6");
+
+// Randomly select an image from the existing array
+const randomIndex = Math.floor(Math.random() * images.length);
+const randomImage = images[randomIndex];
+
+// Set the new image's source to the randomly selected image's source
+newImage.src = randomImage.src;
+
+// Add the new image to the container and the array
+imagesContainer.appendChild(newImage);
+images.push(newImage);
+
+
+
+
+// Get a reference to the reset button and verify button
+const resetButton = document.querySelector("#reset");
+const verifyButton = document.querySelector("#verify");
+
+// Get a reference to the message paragraph
+const message = document.querySelector("#para");
+
+// Initialize variables to keep track of clicked tiles
+let firstClickedTile = null;
+let secondClickedTile = null;
+
+// Add event listeners to each image
+images.forEach(image => {
+image.addEventListener("click", event => {
+// If both tiles have been clicked, return early
+if (firstClickedTile !== null && secondClickedTile !== null) {
+return;
+}
+
+ 
+// Get a reference to the clicked tile
+const clickedTile = event.target;
+
+// If the clicked tile is already selected, return early
+if (clickedTile.classList.contains("selected")) {
+  return;
+}
+
+// If no tiles have been clicked yet, set this tile as the first clicked tile
+if (firstClickedTile === null) {
+  firstClickedTile = clickedTile;
+  firstClickedTile.classList.add("selected");
+  
+  // Show the reset button
+  resetButton.style.display = "inline-block";
+} 
+// If one tile has been clicked, set this tile as the second clicked tile
+else {
+  secondClickedTile = clickedTile;
+  secondClickedTile.classList.add("selected");
+  
+  // Show the verify button
+  verifyButton.style.display = "inline-block";
+}
+});
 });
 
-// State variables
-let clickedImages = [];
-let verifyButtonVisible = false;
+// Add event listener to reset button
+resetButton.addEventListener("click", () => {
+// Clear clicked tiles and remove selected class from all tiles
+firstClickedTile = null;
+secondClickedTile = null;
+images.forEach(image => image.classList.remove("selected"));
 
-// Image click event handler
-function handleImageClick(event) {
-  const clickedImage = event.target;
-  const clickedImageIndex = parseInt(clickedImage.className.replace('img', ''));
-  
-  if (verifyButtonVisible) {
-    return; // Ignore clicks when Verify button is visible
-  }
+// Hide the reset button and verify button
+resetButton.style.display = "none";
+verifyButton.style.display = "none";
 
-  if (clickedImages.includes(clickedImageIndex)) {
-    return; // Ignore clicks on the same image
-  }
+// Clear the message
+message.textContent = "";
+});
 
-  clickedImages.push(clickedImageIndex);
-  clickedImage.classList.add('selected');
-
-  if (clickedImages.length === 2) {
-    showVerifyButton();
-  }
-
-  if (clickedImages.length > 2) {
-    resetState();
-  }
+// Add event listener to verify button
+verifyButton.addEventListener("click", () => {
+// If both tiles are identical, show success message
+if (firstClickedTile.src === secondClickedTile.src) {
+message.textContent = "You are a human. Congratulations!";
+}
+// If tiles are not identical, show error message
+else {
+message.textContent = "We can't verify you as a human. You selected the non-identical tiles.";
 }
 
-// Show the Verify button
-function showVerifyButton() {
-  const verifyButton = document.getElementById('verify');
-  verifyButtonVisible = true;
-  verifyButton.style.display = 'block';
-  verifyButton.addEventListener('click', handleVerifyClick);
-}
+// Remove selected class from all tiles
+images.forEach(image => image.classList.remove("selected"));
 
-// Verify button click event handler
-function handleVerifyClick() {
-  const verifyButton = document.getElementById('verify');
-  verifyButton.removeEventListener('click', handleVerifyClick);
-  verifyButton.style.display = 'none';
+// Hide the reset button and verify button
+resetButton.style.display = "none";
+verifyButton.style.display = "none";
 
-  const para = document.getElementById('para');
-  if (clickedImages.length === 2) {
-    if (clickedImages[0] === clickedImages[1]) {
-      para.textContent = 'You are a human. Congratulations!';
-    } else {
-      para.textContent = "We can't verify you as a human. You selected the non-identical tiles.";
-    }
-  }
-
-  resetState();
-}
-
-// Reset the state to the initial state
-function resetState() {
-  const resetButton = document.getElementById('reset');
-  resetButton.style.display = 'none';
-  resetButton.removeEventListener('click', resetState);
-
-  const para = document.getElementById('para');
-  para.textContent = '';
-
-  clickedImages.forEach((index) => {
-    const img = document.querySelector(`.img${index}`);
-    img.classList.remove('selected');
-  });
-
-  clickedImages = [];
-  verifyButtonVisible = false;
-}
-
-// Shuffle an array using Fisher-Yates algorithm
-function shuffle(array) {
-  const arrayCopy = array.slice();
-  for (let i = arrayCopy.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [arrayCopy[i], arrayCopy[j]] = [arrayCopy[j], arrayCopy[i]];
-  }
-  return arrayCopy;
-}
+// Clear clicked tiles
+firstClickedTile = null;
+secondClickedTile = null;
+});
